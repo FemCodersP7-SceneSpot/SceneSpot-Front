@@ -1,0 +1,16 @@
+import React from "react"
+import { cn } from "./utils";
+
+function Label({ className, ...props }) {
+  return (
+    <label
+      className={cn(
+        "flex items-center gap-2 leading-none select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export { Label };
