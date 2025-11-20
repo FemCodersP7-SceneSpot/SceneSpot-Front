@@ -1,5 +1,6 @@
 import React from "react";
-import { cn } from "./utils";
+import { cn } from "../../../utils/cn";
+
 
 function Input({ className, type, ...props }) {
   return (
@@ -17,4 +18,4 @@ function Input({ className, type, ...props }) {
   );
 }
 
-export { Input };
+export default Input 

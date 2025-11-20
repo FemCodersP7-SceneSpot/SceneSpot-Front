@@ -1,5 +1,6 @@
 import React from "react"
-import { cn } from "./utils";
+import { cn } from "../../../utils/cn";
+
 
 function Label({ className, ...props }) {
   return (
@@ -13,4 +14,4 @@ function Label({ className, ...props }) {
   );
 }
 
-export { Label };
+export default Label

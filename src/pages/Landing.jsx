@@ -3,14 +3,16 @@ import React from 'react'
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { MapPin } from '../components/ui/Icons';
-import { Badge } from '../components/ui/Badge';
+import  Badge  from '../components/ui/Badge';
 import Map from '../components/Map';
 import MovieCarousel from '../components/MovieCarousel';
 import { getAllScenes, mockMovies } from '../data/mockData';
 import Button from '../components/ui/Button';
 import heroBackground from '../assets/hero_background.png';
+import { useNavigate } from 'react-router-dom';
 
-export default function LandingPage({ navigate, onOpenLogin }) {
+export default function LandingPage({onOpenLogin }) {
+  const navigate = useNavigate();
   const allScenes = getAllScenes();
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -100,7 +102,7 @@ export default function LandingPage({ navigate, onOpenLogin }) {
             </div>
           </div>
           
-          <MovieCarousel movies={filteredMovies} navigate={navigate} />
+          <MovieCarousel movies={filteredMovies} navigate ={(movieId) => navigate(`/detail/${movieId}`)}  />
         </div>
       </section>
     </div>

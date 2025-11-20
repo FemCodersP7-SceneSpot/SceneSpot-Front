@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import Button from './ui/Button';
 
@@ -8,6 +8,13 @@ function Modal({ isOpen, onClose, defaultMode = 'login' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+    useEffect(() => {
+    setMode(defaultMode);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  }, [defaultMode]);
 
   if (!isOpen) return null;
 

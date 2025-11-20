@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from './ui/Icons';
 import Button from './ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 
-export default function MovieCarousel({ movies, navigate }) {
+export default function MovieCarousel({ movies }) {
+  const navigate = useNavigate();
   const [startIndex, setStartIndex] = useState(0);
   const itemsPerPage = 4;
 
@@ -43,7 +45,7 @@ export default function MovieCarousel({ movies, navigate }) {
             <div key={movie.id} className="flex flex-col group">
               <div
                 className="cursor-pointer transition-all"
-                onClick={() => navigate('movie', movie.id)}
+                onClick={() => navigate(`/detail/${movie.id}`)}
               >
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-lg bg-gray-200 group-hover:shadow-2xl transition-all group-hover:scale-105">
                   <img
