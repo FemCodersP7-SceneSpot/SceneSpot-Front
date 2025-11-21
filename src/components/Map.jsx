@@ -22,7 +22,7 @@ function Map({ scenes, center = { lat: 40.7128, lng: -74.006 }, zoom = 12, onMar
       {scenes.map(scene => (
         <Marker
           key={scene.id}
-          position={[scene.lat, scene.lng]}
+          position={[scene.latitude, scene.longitude]}
           eventHandlers={{
             click: () => onMarkerClick?.(scene),
           }}

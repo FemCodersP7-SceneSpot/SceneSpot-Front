@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 function Header({onOpenLogin}) {
   let navigate = useNavigate();
   return (
-    <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+    <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-999999 shadow-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <button
           className="flex items-center gap-2 hover:opacity-80 transition-all hover:scale-105"

@@ -20,5 +20,5 @@ function Badge({ className = '', variant = 'default', ...props }) {
 }
 
 
-export default Badge
-export { badgeVariants }
+export default Badge;
+export { badgeVariants };

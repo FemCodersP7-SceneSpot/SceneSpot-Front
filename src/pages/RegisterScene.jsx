@@ -1,15 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react';
+import { CheckCircle, MapPin, Sparkles } from 'lucide-react';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/input/Input';
+import Textarea from '../components/ui/textarea/Textarea';
+import Label from '../components/ui/label/Label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/cardSiemple';
+import Badge from '../components/ui/Badge';
+import { toast } from '../utils/tosat';
+import { useNavigate } from 'react-router-dom';
+import { fetchMovies, getMovieDetails } from '../services/tmbdService';
 
-import { CheckCircle, MapPin, Sparkles } from 'lucide-react'
-import Button from '../components/ui/Button'
-import Input from '../components/ui/input/Input'
-import Textarea from '../components/ui/textarea/Textarea'
-import Label from '../components/ui/label/Label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/cardSiemple'
-import Badge from '../components/ui/Badge'
-
-export default function SceneRegistration({ navigate }) {
+export default function SceneRegistration() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    movieId: null,      // TMDB movie ID
     movieTitle: '',
     description: '',
     address: '',
@@ -17,49 +21,97 @@ export default function SceneRegistration({ navigate }) {
     longitude: ''
   });
 
-  const handleSubmit = (e) => {
+  const [movieSuggestions, setMovieSuggestions] = useState([]);
+  const [searchTimeout, setSearchTimeout] = useState(null);
+
+  // Handle movie search
+  const handleMovieSearch = (title) => {
+    setFormData(prev => ({ ...prev, movieTitle: title, movieId: null }));
+
+    if (searchTimeout) clearTimeout(searchTimeout);
+
+    setSearchTimeout(setTimeout(async () => {
+      if (title.trim() === '') return setMovieSuggestions([]);
+
+      const results = await fetchMovies(title);
+      setMovieSuggestions(results);
+    }, 500)); // delay to reduce API calls
+  };
+
+  const handleSelectMovie = (movie) => {
+    setFormData(prev => ({
+      ...prev,
+      movieTitle: movie.title,
+      movieId: movie.id
+    }));
+    setMovieSuggestions([]);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'movieTitle') {
+      handleMovieSearch(value);
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.movieTitle || !formData.description || !formData.address ||
+    if (!formData.movieId || !formData.description || !formData.address ||
         !formData.latitude || !formData.longitude) {
-      toast.error('Please fill in all fields');
+      toast.error('Please fill in all fields and select a movie from suggestions');
       return;
     }
+
     const lat = parseFloat(formData.latitude);
     const lng = parseFloat(formData.longitude);
 
-    if (isNaN(lat) || isNaN(lng)) {
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
       toast.error('Please enter valid latitude and longitude values');
       return;
     }
 
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      toast.error('Latitude must be between -90 and 90, longitude between -180 and 180');
-      return;
+    try {
+      // Save to backend
+      const movieSelected = await getMovieDetails(formData.movieId);
+      const response = await fetch('http://localhost:8080/api/scene', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scene_description: formData.description,
+          address: formData.address,
+          latitude: lat,
+          longitude: lng,
+          movie: {
+            title: movieSelected.title,
+            release_year: movieSelected.year,
+            description: movieSelected.description.length > 250 ? movieSelected.description.slice(0, 250) + "..." : movieSelected.description,
+            poster_img: movieSelected.poster
+           }
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to save scene');
+
+      toast.success('Scene registered successfully!');
+
+      // Reset form
+      setFormData({
+        movieId: null,
+        movieTitle: '',
+        description: '',
+        address: '',
+        latitude: '',
+        longitude: ''
+      });
+
+      setTimeout(() => navigate('/'), 2000);
+    } catch (err) {
+      console.error(err);
+      toast.error('Error registering scene');
     }
-
-    toast.success(
-      'Scene registered successfully! Your scene location has been added to the database.'
-    );
-
-    setFormData({
-      movieTitle: '',
-      description: '',
-      address: '',
-      latitude: '',
-      longitude: ''
-    });
-
-    setTimeout(() => {
-      navigate('/');
-    }, 2000);
-  };
-
-  const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
   };
 
   return (
@@ -93,8 +145,7 @@ export default function SceneRegistration({ navigate }) {
 
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="movieTitle">Movie Title</Label>
                 <Input
                   id="movieTitle"
@@ -104,7 +155,21 @@ export default function SceneRegistration({ navigate }) {
                   onChange={handleChange}
                   required
                   className="border-2 focus:border-purple-600"
+                  autoComplete="off"
                 />
+                {movieSuggestions.length > 0 && (
+                  <ul className="absolute z-50 bg-white border border-gray-300 w-full max-h-60 overflow-auto rounded-md mt-1 shadow-lg">
+                    {movieSuggestions.map(m => (
+                      <li
+                        key={m.id}
+                        className="px-3 py-2 cursor-pointer hover:bg-purple-100"
+                        onClick={() => handleSelectMovie(m)}
+                      >
+                        {m.title} ({m.year})
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -135,7 +200,6 @@ export default function SceneRegistration({ navigate }) {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                
                 <div className="space-y-2">
                   <Label htmlFor="latitude">Latitude</Label>
                   <Input
@@ -185,7 +249,6 @@ export default function SceneRegistration({ navigate }) {
                 <CheckCircle className="w-5 h-5 mr-2" />
                 Register Scene
               </Button>
-
             </form>
           </CardContent>
         </Card>
